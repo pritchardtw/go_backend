@@ -69,9 +69,9 @@ func recordStats(next http.Handler) http.Handler {
 
 func delayHash(pwd string) {
 	hashDelay := time.NewTimer(HASH_DELAY)
-	<-hashDelay.C
+	<-hashDelay.C                              // Delay 5 seconds before hashing and encoding
 	encodedHash := hashPassword(pwd)           // Hash & encode the password
-	passwords = append(passwords, encodedHash) // Respond with the password after 5 seconds
+	passwords = append(passwords, encodedHash) // Add to the "database" aka string slice for this exercise.
 }
 
 func hashRoute(w http.ResponseWriter, r *http.Request) {
@@ -82,11 +82,18 @@ func hashRoute(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		idString := r.URL.Path[len("/hash/"):]
+
 		if len(idString) < 1 {
 			http.Error(w, "Must provide an index", http.StatusBadRequest)
 			return
 		}
-		id, _ := strconv.Atoi(idString)
+
+		id, err := strconv.Atoi(idString)
+		if err != nil {
+			http.Error(w, "Must provide a numerical index", http.StatusBadRequest)
+			return
+		}
+
 		if id < len(passwords) {
 			w.Write([]byte(passwords[id]))
 		} else {
@@ -108,8 +115,8 @@ func hashRoute(w http.ResponseWriter, r *http.Request) {
 }
 
 type Stats struct {
-	Total   int
-	Average float64
+	Total   int     `json:"total"`
+	Average float64 `json:"average"`
 }
 
 func statsRoute(w http.ResponseWriter, r *http.Request) {
