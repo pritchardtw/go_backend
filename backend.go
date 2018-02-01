@@ -11,6 +11,7 @@ import (
 )
 
 const HASH_DELAY = 5 * time.Second // A 5 second response delay.
+const SHUTDOWN_DELAY = HASH_DELAY + (1 * time.Second)
 const PORT = ":5000"
 
 var shutDown bool = false
@@ -30,6 +31,8 @@ func hashPassword(pwd string) string {
 
 // Should be used async with go shutdownServer
 func shutdownServer() {
+	shutdownDelay := time.NewTimer(SHUTDOWN_DELAY)
+	<-shutdownDelay.C
 	srv.Shutdown(context.Background())
 }
 
